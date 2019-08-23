@@ -1,0 +1,30 @@
+version: "1"
+services:
+  db:
+    # Base image for DB is postgres
+    image: postgres
+    ports:
+      # Localhost port 5600 will direct to Postgres container port 5432.
+      - "5600:5432"
+      # Setup environment variables; these determine how to log into the Postgres DB
+    environment:
+      - POSTGRES_USER=myUsername
+      - POSTGRES_PASSWORD=myPassword
+      - POSTGRES_DB=myDatabase
+    volumes:
+      # Mount data into /pgdata folder in both host and container.
+      - ./pgdata:/pgdata
+      # Execute scripts contained in /db_scripts folder to setup database.
+      - ./db_scripts/setup_db.sql:/docker-entrypoint-initdb.d/setup_db.sql
+  app:
+    # Build image from Dockerfile found in this directory.
+    build: .
+    ports:
+      # Localhost port 90 will direct to Node container port 4000.
+      - "90:4000"
+    depends_on:
+      - db
+    environment:
+      - DATABASE_URL=postgres://myUsername:myPassword@db:5600/myDatabase
+      # Expose port 4000 on the app container
+      - PORT=4000
